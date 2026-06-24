@@ -3,7 +3,6 @@ Central configuration for DevLens AI backend.
 All tunable values live here so behavior can be changed without touching
 business logic, and so the README can document exactly what is configurable.
 """
-import os
 from pathlib import Path
 from pydantic_settings import BaseSettings
 
@@ -21,13 +20,13 @@ class Settings(BaseSettings):
     # --- AI provider ---
     # "groq" uses Groq's free-tier cloud API (fast, recommended default).
     # "ollama" uses a locally running Ollama instance (fully offline, no API key).
-    ai_provider: str = os.environ.get("AI_PROVIDER", "groq")
+    ai_provider: str = "groq"
 
-    groq_api_key: str = os.environ.get("GROQ_API_KEY", "")
-    groq_model: str = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
 
-    ollama_base_url: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-    ollama_model: str = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:7b")
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5-coder:7b"
 
     # --- Ingestion limits (protect against giant repos blowing up memory/time) ---
     max_file_size_bytes: int = 400_000          # skip files bigger than this
@@ -42,18 +41,18 @@ class Settings(BaseSettings):
     # --- CORS ---
     # Comma-separated list of allowed origins. Defaults to local dev.
     # In production, set CORS_ORIGINS to your deployed frontend URL, e.g.
-    # CORS_ORIGINS=https://devlens-ai.vercel.app
-    cors_origins_raw: str = os.environ.get(
-        "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-    )
+    # CORS_ORIGINS=https://devlensai-umber.vercel.app
+    cors_origins_raw: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins_raw.split(",") if origin.strip()]
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

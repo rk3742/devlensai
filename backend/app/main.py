@@ -6,7 +6,7 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.config import settings
 from app.db import init_db
@@ -21,9 +21,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS is configured explicitly (not "*") so the frontend's exact origin must
-# match — this is what the project spec means by "no CORS errors": getting
-# this list right up front rather than discovering mismatches at runtime.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -31,6 +28,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Explicit OPTIONS handler must come before routers to take precedence
+@app.options("/{full_path:path}")
+async def preflight_handler(full_path: str, request: Request):
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, ngrok-skip-browser-warning",
+            "Access-Control-Allow-Credentials": "true",
+        },
+    )
 
 
 @app.on_event("startup")
@@ -62,6 +73,7 @@ def health_check():
     }
 
 
+# Include routers after defining the OPTIONS handler so OPTIONS takes precedence
 app.include_router(repositories.router)
 app.include_router(chat.router)
 app.include_router(documentation.router)

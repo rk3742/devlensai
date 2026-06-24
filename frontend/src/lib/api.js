@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 class ApiError extends Error {
   constructor(message, status) {
@@ -12,8 +12,8 @@ async function request(path, options = {}) {
   try {
     response = await fetch(`${API_BASE}${path}`, {
       headers: options.body instanceof FormData
-        ? undefined
-        : { "Content-Type": "application/json", ...(options.headers || {}) },
+  ? { "ngrok-skip-browser-warning": "true" }
+  : { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true", ...(options.headers || {}) },
       ...options,
     });
   } catch (err) {
